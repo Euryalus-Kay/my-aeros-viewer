@@ -255,7 +255,10 @@
     function resetTimer(){
         clearTimeout(timer);
         timer = setTimeout(()=>{
-            if(state==='control') enterOrbit();
+            if(state==='control') {
+                centerAndFit(current)
+                enterOrbit();
+            }
             else if(state==='orbit') goHome();
         },10000);
     }
