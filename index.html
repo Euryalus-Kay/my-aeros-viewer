@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <title>Aeros Racing – Interactive Iterations</title>
+    <!-- Orbitron -->
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet"/>
+    <!-- Import-map -->
+    <script type="importmap">
+        {
+          "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.176/build/three.module.js"
+          }
+        }
+    </script>
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0}
+        html,body{width:100%;height:100%;overflow:hidden;background:#0c0c0c;color:#fff;font-family:'Orbitron',sans-serif}
+        canvas{display:block;width:100%;height:100%}
+
+        /* Home */
+        #homeScreen {
+            position:absolute;top:0;left:0;width:100%;height:100%;
+            background:#cc0000;display:flex;flex-direction:column;
+            align-items:center;justify-content:center;text-align:center;
+            z-index:10;cursor:pointer;
+        }
+        #homeScreen h1{font-size:4rem;margin-bottom:1rem;text-shadow:2px 2px #000}
+        .feature-container{display:flex;gap:2rem;margin-top:2rem}
+        .feature-circle{
+            width:120px;height:120px;border-radius:50%;
+            border:3px solid #fff;background:rgba(255,255,255,0.1);
+            display:flex;align-items:center;justify-content:center;
+            text-align:center;padding:.5rem;font-size:1rem;
+        }
+        #homeScreen p{margin-top:1rem;font-size:1.3rem}
+
+        /* UI */
+        #ui{
+            position:fixed;top:12px;left:50%;transform:translateX(-50%);
+            display:flex;align-items:center;gap:1rem;
+            padding:10px 24px;background:rgba(20,20,20,0.9);
+            border:2px solid #cc0000;border-radius:28px;z-index:5;
+        }
+        #label{font-size:1.1rem;font-weight:700;min-width:8ch;text-align:center}
+        #auto{
+            all:unset;width:48px;height:48px;border-radius:50%;
+            display:flex;align-items:center;justify-content:center;
+            font-size:1.4rem;cursor:pointer;transition:background .2s;
+        }
+        #auto:hover{background:rgba(255,255,255,0.1)}
+        #auto:active{background:rgba(255,255,255,0.2)}
+
+        /* Arrows */
+        .nav-arrow{
+            position:fixed;top:50%;transform:translateY(-50%);
+            width:70px;height:70px;border-radius:50%;
+            background:rgba(255,255,255,0.1);display:flex;
+            align-items:center;justify-content:center;
+            font-size:2.5rem;cursor:pointer;z-index:5;
+            transition:background .2s;user-select:none;
+        }
+        .nav-arrow:hover{background:rgba(255,255,255,0.2)}
+        #prev{left:20px}#next{right:20px}
+
+        /* Spinner */
+        #loader{
+            position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+            width:42px;height:42px;border:4px solid #444;border-top:4px solid #fff;
+            border-radius:50%;animation:spin 1s linear infinite;z-index:5;
+        }
+        @keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg)}}
+
+        /* Overlay */
+        #overlay{
+            position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+            width:220px;height:220px;background:rgba(204,0,0,0.85);
+            border:4px solid #fff;border-radius:50%;
+            display:flex;align-items:center;justify-content:center;
+            text-align:center;padding:1rem;font-size:1.3rem;font-weight:700;
+            text-shadow:1px 1px #000;cursor:pointer;z-index:4;
+        }
+    </style>
+</head>
+<body>
+<div id="homeScreen">
+    <h1>Aeros Racing 3D Viewer</h1>
+    <div class="feature-container">
+        <div class="feature-circle">360° Auto-Rotate</div>
+        <div class="feature-circle">Orbit • Zoom • Pan</div>
+        <div class="feature-circle">Auto-Fit & Center</div>
+    </div>
+    <p>Press anywhere to start</p>
+</div>
+
+<canvas id="c"></canvas>
+<div id="ui">
+    <span id="label">Loading…</span>
+    <button id="auto">⟳</button>
+</div>
+<div id="prev" class="nav-arrow">◄</div>
+<div id="next" class="nav-arrow">►</div>
+<div id="loader"></div>
+<div id="overlay">PRESS TO INTERACT</div>
+
+<script type="module">
+    import * as THREE        from 'three';
+    import { OrbitControls }  from 'https://cdn.jsdelivr.net/npm/three@0.176/examples/jsm/controls/OrbitControls.js';
+    import { GLTFLoader }     from 'https://cdn.jsdelivr.net/npm/three@0.176/examples/jsm/loaders/GLTFLoader.js';
+    import { DRACOLoader }    from 'https://cdn.jsdelivr.net/npm/three@0.176/examples/jsm/loaders/DRACOLoader.js';
+
+    const MODELS = ['iteration1.glb'];
+    const canvas   = document.getElementById('c');
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias:true });
+    renderer.setPixelRatio(devicePixelRatio);
+    renderer.setSize(window.innerWidth,window.innerHeight);
+    renderer.outputColorSpace    = THREE.SRGBColorSpace;
+    renderer.toneMapping         = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.15;
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0c0c0c);
+    scene.add(new THREE.AmbientLight(0xffffff,0.3));
+    scene.add(new THREE.HemisphereLight(0xffffff,0x222233,0.7));
+    const key = new THREE.DirectionalLight(0xffffff,1.2);
+    key.position.set(5,8,5);
+    scene.add(key);
+
+    const camera = new THREE.PerspectiveCamera(45,innerWidth/innerHeight,0.01,1000);
+    const controls = new OrbitControls(camera,renderer.domElement);
+    controls.enableDamping      = true;
+    controls.dampingFactor      = 0.08;
+    controls.enablePan          = true;
+    controls.screenSpacePanning = true;
+    controls.enableZoom         = true;
+    controls.autoRotateSpeed    = 1.0;
+    controls.enabled            = false;
+
+    const gltfLoader  = new GLTFLoader();
+    const dracoLoader = new DRACOLoader();
+    dracoLoader.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.176/examples/jsm/libs/draco/');
+    gltfLoader.setDRACOLoader(dracoLoader);
+
+    let current=null, idx=0, state='home', timer;
+    const ui = {
+        home:    document.getElementById('homeScreen'),
+        prev:    document.getElementById('prev'),
+        next:    document.getElementById('next'),
+        auto:    document.getElementById('auto'),
+        label:   document.getElementById('label'),
+        loader:  document.getElementById('loader'),
+        overlay: document.getElementById('overlay')
+    };
+
+    // launch viewer
+    function launch(){
+        ui.home.style.display='none';
+        enterOrbit();
+        loadModel(idx);
+    }
+    ui.home.addEventListener('pointerup', launch, { once:true });
+
+    ui.overlay.addEventListener('pointerup', ()=>{ enterControl(); });
+
+    ui.prev.addEventListener('pointerup', ()=>{
+        idx=(idx-1+MODELS.length)%MODELS.length;
+        loadModel(idx); enterOrbit();
+    });
+    ui.next.addEventListener('pointerup', ()=>{
+        idx=(idx+1)%MODELS.length;
+        loadModel(idx); enterOrbit();
+    });
+
+    ui.auto.onclick = ()=>{
+        controls.autoRotate = !controls.autoRotate;
+        ui.auto.style.opacity = controls.autoRotate?1:0.5;
+    };
+
+    function enterOrbit(){
+        state='orbit';
+        controls.enabled    = false;
+        controls.autoRotate = true;
+        ui.overlay.style.display='flex';
+        resetTimer();
+    }
+    function enterControl(){
+        state='control';
+        controls.enabled    = true;
+        controls.autoRotate = false;
+        ui.overlay.style.display='none';
+        resetTimer();
+    }
+    function goHome(){
+        state='home';
+        ui.home.style.display='flex';
+        ui.overlay.style.display='none';
+        clearTimeout(timer);
+        ui.home.addEventListener('pointerup', launch, { once:true });
+    }
+
+    function loadModel(i){
+        ui.loader.style.display='block';
+        ui.label.textContent = `Iteration ${i+1}`;
+        gltfLoader.load(MODELS[i], gltf => {
+            if(current) {
+                scene.remove(current);
+                dispose(current);
+            }
+            current = gltf.scene;
+            scene.add(current);
+            centerAndFit(current);
+            ui.loader.style.display='none';
+        },undefined,err=>{
+            console.error(err);
+            ui.loader.style.display='none';
+        });
+    }
+
+    function centerAndFit(obj){
+        // center
+        const box = new THREE.Box3().setFromObject(obj);
+        const center = box.getCenter(new THREE.Vector3());
+        obj.position.sub(center);
+        // scale
+        const size = box.getSize(new THREE.Vector3());
+        const scale = size.maxComponent ? 2/Math.max(size.x,size.y,size.z) : 1;
+        obj.scale.setScalar(scale);
+        // recompute
+        const box2 = new THREE.Box3().setFromObject(obj);
+        const sphere = new THREE.Sphere();
+        box2.getBoundingSphere(sphere);
+        const fov = THREE.MathUtils.degToRad(camera.fov);
+        const dist = sphere.radius/Math.sin(fov/2)*1.6;
+        // top-down with tiny offset
+        camera.position.set(dist*0.05, dist*1.5, dist*0.05);
+        camera.near = dist/100;
+        camera.far  = dist*10;
+        camera.updateProjectionMatrix();
+        controls.target.set(0,0,0);
+        controls.minDistance = dist*0.5;
+        controls.maxDistance = dist*5;
+        controls.update();
+    }
+
+    function dispose(root){
+        root.traverse(n=>{
+            if(n.isMesh){
+                n.geometry.dispose();
+                (Array.isArray(n.material)?n.material:[n.material]).forEach(m=>m.dispose());
+            }
+        });
+    }
+
+    function resetTimer(){
+        clearTimeout(timer);
+        timer = setTimeout(()=>{
+            if(state==='control') enterOrbit();
+            else if(state==='orbit') goHome();
+        },10000);
+    }
+    ['pointerup','wheel','touchstart'].forEach(e=>{
+        window.addEventListener(e,()=>{
+            if(state!=='home') resetTimer();
+        });
+    });
+
+    window.addEventListener('resize', ()=>{
+        camera.aspect = window.innerWidth/window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth,window.innerHeight);
+        if(current) centerAndFit(current);
+    });
+
+    renderer.setAnimationLoop(()=>{
+        controls.update();
+        renderer.render(scene,camera);
+    });
+</script>
+</body>
+</html>
