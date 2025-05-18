@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8"/>
-    <title>Aeros Racing – Interactive Iterations</title>
+    <title>Aeros Racing – Interactive Car Viewer</title>
     <!-- Orbitron -->
     <link rel="preconnect" href="https://fonts.googleapis.com"/>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet"/>
@@ -22,19 +22,32 @@
         /* Home */
         #homeScreen {
             position:absolute;top:0;left:0;width:100%;height:100%;
-            background:#cc0000;display:flex;flex-direction:column;
+            background:linear-gradient(135deg, #cc0000 0%, #990000 100%);
+            display:flex;flex-direction:column;
             align-items:center;justify-content:center;text-align:center;
             z-index:10;cursor:pointer;
         }
         #homeScreen h1{font-size:4rem;margin-bottom:1rem;text-shadow:2px 2px #000}
-        .feature-container{display:flex;gap:2rem;margin-top:2rem}
+        .feature-container{display:flex;gap:2rem;margin-top:2rem;flex-wrap:wrap;justify-content:center}
         .feature-circle{
-            width:200px;height:200px;border-radius:50%;
-            border:3px solid #fff;background:rgba(255,255,255,0.1);
+            width:180px;height:180px;border-radius:50%;
+            border:3px solid #fff;background:rgba(0,0,0,0.2);
             display:flex;align-items:center;justify-content:center;
             text-align:center;padding:.5rem;font-size:1rem;
+            flex-direction: column;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
         }
-        #homeScreen p{margin-top:1rem;font-size:1.3rem}
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        #homeScreen p{margin-top:2rem;font-size:1.5rem;animation: pulse 2s infinite;}
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
 
         /* UI */
         #ui{
@@ -42,44 +55,215 @@
             display:flex;align-items:center;gap:1rem;
             padding:10px 24px;background:rgba(20,20,20,0.9);
             border:2px solid #cc0000;border-radius:28px;z-index:5;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
         }
-        #label{font-size:1.1rem;font-weight:700;min-width:8ch;text-align:center}
-        #auto{
+        #label{font-size:1.2rem;font-weight:700;min-width:10ch;text-align:center}
+        .ui-button{
             all:unset;width:48px;height:48px;border-radius:50%;
             display:flex;align-items:center;justify-content:center;
-            font-size:1.4rem;cursor:pointer;transition:background .2s;
+            font-size:1.4rem;cursor:pointer;transition:all .2s;
         }
-        #auto:hover{background:rgba(255,255,255,0.1)}
-        #auto:active{background:rgba(255,255,255,0.2)}
+        .ui-button:hover{background:rgba(255,255,255,0.1)}
+        .ui-button:active{background:rgba(255,255,255,0.2)}
+
+        /* Reset button special styling */
+        #resetBtn {
+            background: rgba(204,0,0,0.8);
+            border: 2px solid #fff;
+        }
+        #resetBtn:hover {
+            background: rgba(204,0,0,1);
+            transform: scale(1.1);
+        }
 
         /* Arrows */
         .nav-arrow{
             position:fixed;top:50%;transform:translateY(-50%);
-            width:70px;height:70px;border-radius:50%;
-            background:rgba(255,255,255,0.1);display:flex;
+            width:80px;height:80px;border-radius:50%;
+            background:rgba(204,0,0,0.8);display:flex;
             align-items:center;justify-content:center;
-            font-size:2.5rem;cursor:pointer;z-index:5;
-            transition:background .2s;user-select:none;
+            font-size:3rem;cursor:pointer;z-index:5;
+            transition:all .2s;user-select:none;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
-        .nav-arrow:hover{background:rgba(255,255,255,0.2)}
+        .nav-arrow:hover{background:rgba(204,0,0,1);transform:translateY(-50%) scale(1.1);}
+        .nav-arrow:active{transform:translateY(-50%) scale(0.95);}
         #prev{left:20px}#next{right:20px}
+        
+        /* Always visible panels */
+        #instructionsPanel {
+            position: fixed;
+            top: 80px;
+            left: 20px;
+            background: rgba(20,20,20,0.9);
+            border: 2px solid #cc0000;
+            border-radius: 12px;
+            padding: 15px;
+            z-index: 5;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            max-width: 320px;
+        }
+        #instructionsPanel h3 {
+            margin-bottom: 10px;
+            border-bottom: 1px solid #cc0000;
+            padding-bottom: 5px;
+            color: #cc0000;
+        }
+        #instructionsPanel ul {
+            list-style-type: none;
+            margin-left: 5px;
+        }
+        #instructionsPanel li {
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+        }
+        #instructionsPanel .control-key {
+            display: inline-block;
+            background: #333;
+            border: 1px solid #777;
+            border-radius: 4px;
+            padding: 2px 6px;
+            margin-right: 8px;
+            font-size: 0.8rem;
+            color: #fff;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        /* Info Panel - always visible */
+        #infoPanel {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(20,20,20,0.9);
+            border: 2px solid #cc0000;
+            border-radius: 12px;
+            padding: 15px;
+            z-index: 5;
+            width: 320px;
+            max-height: 280px;
+            overflow-y: auto;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
+        #infoPanel h3 {
+            margin-bottom: 10px;
+            border-bottom: 1px solid #cc0000;
+            padding-bottom: 5px;
+            color: #cc0000;
+        }
+        #infoContent p {
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+        
+        /* Annotations */
+        .annotation {
+            position: absolute;
+            width: 35px;
+            height: 35px;
+            margin-left: -17.5px;
+            margin-top: -17.5px;
+            background: rgba(204,0,0,0.9);
+            border: 3px solid white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1.1rem;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.6);
+            z-index: 6;
+            transform: scale(0);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .annotation.visible {
+            transform: scale(1);
+        }
+        .annotation:hover {
+            transform: scale(1.3);
+            background: #ff0000;
+            box-shadow: 0 4px 12px rgba(204,0,0,0.8);
+        }
+        .annotation-content {
+            position: absolute;
+            background: rgba(20,20,20,0.95);
+            border: 2px solid #cc0000;
+            border-radius: 8px;
+            padding: 12px;
+            width: 220px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.7);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            color: white;
+            font-size: 0.9rem;
+            z-index: 7;
+        }
+        .annotation:hover .annotation-content {
+            opacity: 1;
+        }
 
         /* Spinner */
         #loader{
             position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
-            width:42px;height:42px;border:4px solid #444;border-top:4px solid #fff;
-            border-radius:50%;animation:spin 1s linear infinite;z-index:5;
+            width:60px;height:60px;
+            border:4px solid rgba(204,0,0,0.3);
+            border-top:4px solid #cc0000;
+            border-radius:50%;
+            animation:spin 1s linear infinite;z-index:15;
         }
         @keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg)}}
 
         /* Overlay */
         #overlay{
             position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-            width:220px;height:220px;background:rgba(204,0,0,0.85);
+            width:250px;height:250px;background:rgba(204,0,0,0.85);
             border:4px solid #fff;border-radius:50%;
             display:flex;align-items:center;justify-content:center;
-            text-align:center;padding:1rem;font-size:1.3rem;font-weight:700;
+            text-align:center;padding:1rem;font-size:1.4rem;font-weight:700;
             text-shadow:1px 1px #000;cursor:pointer;z-index:4;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.5);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        #overlay:hover {
+            transform: translate(-50%,-50%) scale(1.05);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            #homeScreen h1 { font-size: 2.5rem; }
+            .nav-arrow { width: 60px; height: 60px; font-size: 2rem; }
+            #infoPanel, #instructionsPanel { 
+                width: 280px; 
+                font-size: 0.8rem;
+                max-width: calc(100vw - 40px);
+            }
+            #instructionsPanel {
+                top: 70px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            #instructionsPanel {
+                position: fixed;
+                top: auto;
+                bottom: 320px;
+                left: 10px;
+                right: 10px;
+                width: auto;
+                max-width: none;
+            }
+            #infoPanel {
+                bottom: 10px;
+                left: 10px;
+                right: 10px;
+                width: auto;
+            }
         }
     </style>
 </head>
@@ -87,22 +271,59 @@
 <div id="homeScreen">
     <h1>Aeros Racing 3D Viewer</h1>
     <div class="feature-container">
-        <div class="feature-circle">360° Auto-Rotate</div>
-        <div class="feature-circle">Orbit • Zoom • Pan</div>
-        <div class="feature-circle">Auto-Fit & Center</div>
+        <div class="feature-circle">
+            <span class="feature-icon">⟳</span>
+            Auto-Rotate
+        </div>
+        <div class="feature-circle">
+            <span class="feature-icon">👆</span>
+            Orbit Viewing
+        </div>
+        <div class="feature-circle">
+            <span class="feature-icon">🔍</span>
+            Zoom & Pan
+        </div>
+        <div class="feature-circle">
+            <span class="feature-icon">ℹ️</span>
+            Car Annotations
+        </div>
     </div>
-    <p>Press anywhere to start</p>
+    <p>TAP ANYWHERE TO START</p>
 </div>
 
 <canvas id="c"></canvas>
+
 <div id="ui">
-    <span id="label">Loading…</span>
-    <button id="auto">⟳</button>
+    <span id="label">LOADING...</span>
+    <button id="auto" class="ui-button">⟳</button>
+    <button id="resetBtn" class="ui-button">🏠</button>
 </div>
+
 <div id="prev" class="nav-arrow">◄</div>
 <div id="next" class="nav-arrow">►</div>
+
+<div id="instructionsPanel">
+    <h3>Touch Controls</h3>
+    <ul>
+        <li><span class="control-key">Touch & Drag</span> Rotate car</li>
+        <li><span class="control-key">Pinch</span> Zoom in/out</li>
+        <li><span class="control-key">Two Fingers</span> Pan camera</li>
+        <li><span class="control-key">◄ ►</span> Switch iterations</li>
+        <li><span class="control-key">⟳</span> Auto-rotation</li>
+        <li><span class="control-key">🏠</span> Reset to home</li>
+        <li><span class="control-key">Numbers</span> Part details</li>
+    </ul>
+</div>
+
+<div id="infoPanel">
+    <h3 id="infoPanelTitle">Iteration 1</h3>
+    <div id="infoContent">
+        <p>Loading iteration information...</p>
+    </div>
+</div>
+
 <div id="loader"></div>
-<div id="overlay">PRESS TO INTERACT</div>
+<div id="overlay">TAP TO INTERACT</div>
 
 <script type="module">
     import * as THREE        from 'three';
@@ -110,172 +331,479 @@
     import { GLTFLoader }     from 'https://cdn.jsdelivr.net/npm/three@0.176/examples/jsm/loaders/GLTFLoader.js';
     import { DRACOLoader }    from 'https://cdn.jsdelivr.net/npm/three@0.176/examples/jsm/loaders/DRACOLoader.js';
 
+    // Model files - add all your iterations here
     const MODELS = ['iteration1.glb'];
+    
+    // Configuration data
+    const ITERATIONS_INFO = [
+        {
+            title: "Initial Design - Baseline",
+            description: "Our first prototype features a streamlined body with early aerodynamic concepts. The front wing design was inspired by Formula 1's 2023 regulations, focused on reducing turbulence while maximizing downforce.",
+            improvements: "Baseline design achieved a drag coefficient of 0.32 and demonstrated stable handling characteristics in initial CFD testing.",
+            specs: "Weight: 52g | Length: 210mm | Drag Coeff: 0.32"
+        }
+        // Add more iterations as needed
+    ];
+    
+    // Annotation data - positioned around different parts of the car
+    const ANNOTATIONS = [
+        {
+            iteration: 0, // Corresponds to first model in MODELS array
+            points: [
+                { 
+                    id: 1, 
+                    name: "Front Wing", 
+                    description: "Generates downforce and directs airflow around the wheels. Designed for optimal pressure distribution.", 
+                    position: new THREE.Vector3(0, 0.1, 0.85) // Front
+                },
+                { 
+                    id: 2, 
+                    name: "Side Pods", 
+                    description: "Houses cooling systems and manages airflow to rear. Critical for aerodynamic efficiency.", 
+                    position: new THREE.Vector3(0.4, 0.15, 0.1) // Right side
+                },
+                { 
+                    id: 3, 
+                    name: "Cockpit", 
+                    description: "Driver area designed for minimal drag while maintaining structural integrity.", 
+                    position: new THREE.Vector3(0, 0.25, 0.2) // Top center
+                },
+                { 
+                    id: 4, 
+                    name: "Rear Wing", 
+                    description: "Creates downforce while minimizing induced drag. Multi-element design for adjustability.", 
+                    position: new THREE.Vector3(0, 0.3, -0.8) // Back top
+                },
+                { 
+                    id: 5, 
+                    name: "Underfloor", 
+                    description: "Features ground effect aerodynamics for maximum grip. Venturi tunnels accelerate airflow.", 
+                    position: new THREE.Vector3(0, -0.05, 0) // Bottom center
+                },
+                { 
+                    id: 6, 
+                    name: "Left Side Pod", 
+                    description: "Mirror of right sidepod, ensures balanced airflow and cooling efficiency.", 
+                    position: new THREE.Vector3(-0.4, 0.15, 0.1) // Left side
+                }
+            ]
+        }
+        // Add more annotations for other iterations
+    ];
+
     const canvas   = document.getElementById('c');
     const renderer = new THREE.WebGLRenderer({ canvas, antialias:true });
-    renderer.setPixelRatio(devicePixelRatio);
-    renderer.setSize(window.innerWidth,window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Limit for performance
+    renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.outputColorSpace    = THREE.SRGBColorSpace;
     renderer.toneMapping         = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.15;
+    renderer.shadowMap.enabled   = true;
+    renderer.shadowMap.type      = THREE.PCFSoftShadowMap;
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x0c0c0c);
-    scene.add(new THREE.AmbientLight(0xffffff,0.3));
-    scene.add(new THREE.HemisphereLight(0xffffff,0x222233,0.7));
-    const key = new THREE.DirectionalLight(0xffffff,1.2);
-    key.position.set(5,8,5);
+    
+    // Improved lighting setup
+    scene.add(new THREE.AmbientLight(0xffffff, 0.3));
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x222233, 0.7));
+    
+    const key = new THREE.DirectionalLight(0xffffff, 1.2);
+    key.position.set(5, 8, 5);
+    key.castShadow = true;
+    key.shadow.mapSize.width = 1024;
+    key.shadow.mapSize.height = 1024;
+    key.shadow.camera.near = 0.1;
+    key.shadow.camera.far = 20;
+    key.shadow.bias = -0.001;
     scene.add(key);
+    
+    const fill = new THREE.DirectionalLight(0xffffff, 0.5);
+    fill.position.set(-5, 2, -5);
+    scene.add(fill);
 
-    const camera = new THREE.PerspectiveCamera(45,innerWidth/innerHeight,0.01,1000);
-    const controls = new OrbitControls(camera,renderer.domElement);
+    // Add subtle environmental light
+    const envLight = new THREE.HemisphereLight(0x4488ff, 0x885500, 0.3);
+    scene.add(envLight);
+
+    // Add a subtle grid under the car
+    const gridSize = 5;
+    const grid = new THREE.GridHelper(gridSize, 10, 0x444444, 0x222222);
+    grid.position.y = -0.01; // Slightly below the car
+    scene.add(grid);
+
+    const camera = new THREE.PerspectiveCamera(45, innerWidth/innerHeight, 0.01, 1000);
+    const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping      = true;
     controls.dampingFactor      = 0.08;
     controls.enablePan          = true;
     controls.screenSpacePanning = true;
     controls.enableZoom         = true;
     controls.autoRotateSpeed    = 1.0;
+    controls.minPolarAngle      = 0.1; // Limit how far you can orbit down
+    controls.maxPolarAngle      = Math.PI / 1.8; // Limit how far you can orbit up
     controls.enabled            = false;
+
+    // Touch controls optimization
+    controls.rotateSpeed = 0.5;
+    controls.zoomSpeed = 0.6;
+    controls.panSpeed = 0.8;
 
     const gltfLoader  = new GLTFLoader();
     const dracoLoader = new DRACOLoader();
     dracoLoader.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.176/examples/jsm/libs/draco/');
     gltfLoader.setDRACOLoader(dracoLoader);
 
-    let current=null, idx=0, state='home', timer;
+    let current = null, idx = 0, state = 'home', timer;
+    let activeAnnotations = [];
+    
     const ui = {
-        home:    document.getElementById('homeScreen'),
-        prev:    document.getElementById('prev'),
-        next:    document.getElementById('next'),
-        auto:    document.getElementById('auto'),
-        label:   document.getElementById('label'),
-        loader:  document.getElementById('loader'),
-        overlay: document.getElementById('overlay')
+        home:          document.getElementById('homeScreen'),
+        prev:          document.getElementById('prev'),
+        next:          document.getElementById('next'),
+        auto:          document.getElementById('auto'),
+        reset:         document.getElementById('resetBtn'),
+        label:         document.getElementById('label'),
+        loader:        document.getElementById('loader'),
+        overlay:       document.getElementById('overlay'),
+        infoPanel:     document.getElementById('infoPanel'),
+        infoPanelTitle: document.getElementById('infoPanelTitle'),
+        infoContent:   document.getElementById('infoContent')
     };
 
-    // launch viewer
-    function launch(){
-        ui.home.style.display='none';
+    // Initialize UI state
+    ui.auto.style.opacity = 1;
+
+    // Launch viewer
+    function launch() {
+        ui.home.style.display = 'none';
         enterOrbit();
         loadModel(idx);
     }
-    ui.home.addEventListener('pointerup', launch, { once:true });
+    ui.home.addEventListener('pointerup', launch, { once: true });
+    ui.home.addEventListener('touchend', launch, { once: true });
 
-    ui.overlay.addEventListener('pointerup', ()=>{ enterControl(); });
+    ui.overlay.addEventListener('pointerup', () => { enterControl(); });
+    ui.overlay.addEventListener('touchend', () => { enterControl(); });
 
-    ui.prev.addEventListener('pointerup', ()=>{
-        idx=(idx-1+MODELS.length)%MODELS.length;
-        loadModel(idx); enterOrbit();
+    ui.prev.addEventListener('pointerup', () => {
+        idx = (idx - 1 + MODELS.length) % MODELS.length;
+        loadModel(idx); 
+        enterOrbit();
     });
-    ui.next.addEventListener('pointerup', ()=>{
-        idx=(idx+1)%MODELS.length;
-        loadModel(idx); enterOrbit();
+    
+    ui.next.addEventListener('pointerup', () => {
+        idx = (idx + 1) % MODELS.length;
+        loadModel(idx); 
+        enterOrbit();
     });
 
-    ui.auto.onclick = ()=>{
+    ui.auto.onclick = () => {
         controls.autoRotate = !controls.autoRotate;
-        ui.auto.style.opacity = controls.autoRotate?1:0.5;
+        ui.auto.style.opacity = controls.autoRotate ? 1 : 0.5;
+    };
+    
+    ui.reset.onclick = () => {
+        goHome();
     };
 
-    function enterOrbit(){
-        state='orbit';
-        controls.enabled    = false;
+    function enterOrbit() {
+        state = 'orbit';
+        controls.enabled = false;
         controls.autoRotate = true;
-        ui.overlay.style.display='flex';
+        ui.auto.style.opacity = 1;
+        ui.overlay.style.display = 'flex';
+        hideAnnotations();
         resetTimer();
     }
-    function enterControl(){
-        state='control';
-        controls.enabled    = true;
+    
+    function enterControl() {
+        state = 'control';
+        controls.enabled = true;
         controls.autoRotate = false;
-        ui.overlay.style.display='none';
+        ui.auto.style.opacity = 0.5;
+        ui.overlay.style.display = 'none';
+        showAnnotations();
         resetTimer();
     }
-    function goHome(){
-        state='home';
-        ui.home.style.display='flex';
-        ui.overlay.style.display='none';
+    
+    function goHome() {
+        state = 'home';
+        ui.home.style.display = 'flex';
+        ui.overlay.style.display = 'none';
+        hideAnnotations();
         clearTimeout(timer);
-        ui.home.addEventListener('pointerup', launch, { once:true });
+        ui.home.addEventListener('pointerup', launch, { once: true });
+        ui.home.addEventListener('touchend', launch, { once: true });
     }
 
-    function loadModel(i){
-        ui.loader.style.display='block';
-        ui.label.textContent = `Iteration ${i+1}`;
+    function loadModel(i) {
+        ui.loader.style.display = 'block';
+        ui.label.textContent = `ITERATION ${i+1}`;
+        
+        // Update info panel content
+        if (ITERATIONS_INFO[i]) {
+            if (ui.infoPanelTitle) {
+                ui.infoPanelTitle.textContent = `Iteration ${i+1}`;
+            }
+            
+            if (ui.infoContent) {
+                ui.infoContent.innerHTML = `
+                    <p><strong>${ITERATIONS_INFO[i].title}</strong></p>
+                    <p>${ITERATIONS_INFO[i].description}</p>
+                    <p><strong>Performance:</strong> ${ITERATIONS_INFO[i].improvements}</p>
+                    <p><strong>Specifications:</strong> ${ITERATIONS_INFO[i].specs || 'Data pending'}</p>
+                `;
+            }
+        }
+        
         gltfLoader.load(MODELS[i], gltf => {
-            if(current) {
+            if (current) {
                 scene.remove(current);
                 dispose(current);
+                hideAnnotations();
             }
             current = gltf.scene;
+            
+            // Make sure model casts and receives shadows
+            current.traverse(n => {
+                if (n.isMesh) {
+                    n.castShadow = true;
+                    n.receiveShadow = true;
+                    
+                    // Improve material properties for better visualization
+                    if (n.material) {
+                        if (Array.isArray(n.material)) {
+                            n.material.forEach(mat => {
+                                mat.metalness = Math.min(mat.metalness || 0, 0.7);
+                                mat.roughness = Math.max(mat.roughness || 0.5, 0.3);
+                            });
+                        } else {
+                            n.material.metalness = Math.min(n.material.metalness || 0, 0.7);
+                            n.material.roughness = Math.max(n.material.roughness || 0.5, 0.3);
+                        }
+                    }
+                }
+            });
+            
             scene.add(current);
             centerAndFit(current);
-            ui.loader.style.display='none';
-        },undefined,err=>{
-            console.error(err);
-            ui.loader.style.display='none';
+            createAnnotations(i);
+            ui.loader.style.display = 'none';
+        }, undefined, err => {
+            console.error('Error loading model:', err);
+            ui.loader.style.display = 'none';
+            alert('Error loading model. Please check the file path and refresh the page.');
         });
     }
 
-    function centerAndFit(obj){
-        // center
+    function centerAndFit(obj) {
+        // Center
         const box = new THREE.Box3().setFromObject(obj);
         const center = box.getCenter(new THREE.Vector3());
         obj.position.sub(center);
-        // scale
+        
+        // Scale
         const size = box.getSize(new THREE.Vector3());
-        const scale = size.maxComponent ? 2/Math.max(size.x,size.y,size.z) : 1;
+        const scale = size.maxComponent ? 2.5/Math.max(size.x, size.y, size.z) : 1;
         obj.scale.setScalar(scale);
-        // recompute
+        
+        // Recompute
         const box2 = new THREE.Box3().setFromObject(obj);
         const sphere = new THREE.Sphere();
         box2.getBoundingSphere(sphere);
         const fov = THREE.MathUtils.degToRad(camera.fov);
-        const dist = sphere.radius/Math.sin(fov/2)*1.6;
-        // top-down with tiny offset
-        camera.position.set(dist*0.05, dist*1.5, dist*0.05);
-        camera.near = dist/100;
-        camera.far  = dist*10;
+        const dist = sphere.radius / Math.sin(fov/2) * 1.4;
+        
+        // Angled view - better for car visualization
+        camera.position.set(dist * 0.7, dist * 0.6, dist * 0.9);
+        camera.near = dist / 100;
+        camera.far = dist * 10;
         camera.updateProjectionMatrix();
-        controls.target.set(0,0,0);
-        controls.minDistance = dist*0.5;
-        controls.maxDistance = dist*5;
+        controls.target.set(0, 0.1, 0); // Slightly above origin for better orbit
+        controls.minDistance = dist * 0.4;
+        controls.maxDistance = dist * 4;
         controls.update();
     }
 
-    function dispose(root){
-        root.traverse(n=>{
-            if(n.isMesh){
+    function dispose(root) {
+        root.traverse(n => {
+            if (n.isMesh) {
                 n.geometry.dispose();
-                (Array.isArray(n.material)?n.material:[n.material]).forEach(m=>m.dispose());
+                (Array.isArray(n.material) ? n.material : [n.material]).forEach(m => m.dispose());
             }
         });
     }
 
-    function resetTimer(){
+    function resetTimer() {
         clearTimeout(timer);
-        timer = setTimeout(()=>{
-            if(state==='control') enterOrbit();
-            else if(state==='orbit') goHome();
-        },10000);
+        timer = setTimeout(() => {
+            if (state === 'control') enterOrbit();
+            else if (state === 'orbit') goHome();
+        }, 90000); // 90 seconds for touch interface
     }
-    ['pointerup','wheel','touchstart'].forEach(e=>{
-        window.addEventListener(e,()=>{
-            if(state!=='home') resetTimer();
+    
+    // User interaction events - optimized for touch
+    ['touchstart', 'touchmove', 'touchend', 'pointerdown', 'pointermove', 'pointerup', 'wheel'].forEach(e => {
+        window.addEventListener(e, () => {
+            if (state !== 'home') resetTimer();
         });
     });
 
-    window.addEventListener('resize', ()=>{
-        camera.aspect = window.innerWidth/window.innerHeight;
+    // Handle window resize
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth,window.innerHeight);
-        if(current) centerAndFit(current);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        if (current) centerAndFit(current);
+        updateAnnotationPositions();
     });
 
-    renderer.setAnimationLoop(()=>{
-        controls.update();
-        renderer.render(scene,camera);
+    // Annotation system
+    function createAnnotations(iterationIndex) {
+        hideAnnotations();
+        activeAnnotations = [];
+        
+        // Find annotations for the current iteration
+        const annotationData = ANNOTATIONS.find(a => a.iteration === iterationIndex);
+        if (!annotationData) return;
+        
+        // Create annotation elements
+        annotationData.points.forEach(point => {
+            const annotation = document.createElement('div');
+            annotation.className = 'annotation';
+            annotation.textContent = point.id;
+            
+            const content = document.createElement('div');
+            content.className = 'annotation-content';
+            content.innerHTML = `<strong>${point.name}</strong><br>${point.description}`;
+            
+            annotation.appendChild(content);
+            document.body.appendChild(annotation);
+            
+            // Touch-friendly interaction
+            annotation.addEventListener('touchstart', (e) => {
+                e.stopPropagation();
+                // Show content immediately on touch
+                content.style.opacity = '1';
+                setTimeout(() => {
+                    content.style.opacity = '0';
+                }, 3000);
+            });
+            
+            activeAnnotations.push({
+                element: annotation,
+                position3D: point.position
+            });
+        });
+        
+        if (state === 'control') {
+            showAnnotations();
+        }
+    }
+    
+    function updateAnnotationPositions() {
+        if (activeAnnotations.length === 0 || !current) return;
+        
+        activeAnnotations.forEach(anno => {
+            // Get screen position from 3D position
+            const position = anno.position3D.clone();
+            position.applyMatrix4(current.matrixWorld);
+            
+            const vector = position.project(camera);
+            
+            // Convert to screen coordinates
+            const x = (vector.x * 0.5 + 0.5) * canvas.clientWidth;
+            const y = (-(vector.y * 0.5) + 0.5) * canvas.clientHeight;
+            
+            // Check if point is in front of camera
+            if (vector.z < 1) {
+                anno.element.style.left = `${x}px`;
+                anno.element.style.top = `${y}px`;
+                anno.element.style.display = 'flex';
+                
+                // Position the content box based on screen position
+                const content = anno.element.querySelector('.annotation-content');
+                if (x > window.innerWidth / 2) {
+                    content.style.right = '40px';
+                    content.style.left = 'auto';
+                } else {
+                    content.style.left = '40px';
+                    content.style.right = 'auto';
+                }
+                
+                if (y < window.innerHeight / 2) {
+                    content.style.top = '40px';
+                    content.style.bottom = 'auto';
+                } else {
+                    content.style.top = 'auto';
+                    content.style.bottom = '40px';
+                }
+            } else {
+                anno.element.style.display = 'none';
+            }
+        });
+    }
+    
+    function showAnnotations() {
+        if (activeAnnotations.length === 0) return;
+        
+        activeAnnotations.forEach((anno, index) => {
+            setTimeout(() => {
+                anno.element.classList.add('visible');
+            }, index * 150); // Stagger appearance for visual effect
+        });
+    }
+    
+    function hideAnnotations() {
+        activeAnnotations.forEach(anno => {
+            anno.element.classList.remove('visible');
+            setTimeout(() => {
+                if (anno.element && anno.element.parentNode) {
+                    anno.element.parentNode.removeChild(anno.element);
+                }
+            }, 400); // Wait for animation to complete
+        });
+        activeAnnotations = [];
+    }
+
+    // Error handling
+    window.addEventListener('error', function(e) {
+        console.error('Application error:', e.error);
+        if (ui.loader.style.display === 'block') {
+            ui.loader.style.display = 'none';
+            if (confirm('An error occurred. Would you like to return to the home screen?')) {
+                goHome();
+            }
+        }
     });
+
+    // Prevent context menu on touch devices
+    canvas.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+    });
+
+    // Animation loop with error handling
+    function animate() {
+        try {
+            controls.update();
+            if (current && activeAnnotations.length > 0) {
+                updateAnnotationPositions();
+            }
+            renderer.render(scene, camera);
+        } catch (e) {
+            console.error('Render error:', e);
+            // Try to recover by resetting the scene
+            if (confirm('A rendering error occurred. Return to home?')) {
+                goHome();
+            }
+            return;
+        }
+        requestAnimationFrame(animate);
+    }
+    
+    // Start the animation loop
+    animate();
 </script>
 </body>
 </html>
