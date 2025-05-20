@@ -168,6 +168,89 @@
             color: white;
         }
         
+        /* Walkthrough Button - Detached */
+        #walkthroughButton {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: auto;
+            height: 50px;
+            padding: 0 25px;
+            border-radius: 25px;
+            background: linear-gradient(135deg, #cc0000, #ff0000);
+            border: 2px solid #fff;
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 600;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(204,0,0,0.6);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        #walkthroughButton:hover {
+            background: linear-gradient(135deg, #ff0000, #ff3333);
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(204,0,0,0.8);
+        }
+        
+        #walkthroughButton.active {
+            background: linear-gradient(135deg, #00cc00, #00ff00);
+            animation: pulse-walkthrough 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse-walkthrough {
+            0%, 100% { box-shadow: 0 4px 15px rgba(0,204,0,0.6); }
+            50% { box-shadow: 0 6px 25px rgba(0,255,0,0.8); }
+        }
+
+        /* Walkthrough Subtitles */
+        #walkthroughSubtitles {
+            position: fixed;
+            top: 100px;
+            right: 30px;
+            background: linear-gradient(145deg, rgba(12,12,12,0.95), rgba(20,20,20,0.9));
+            border: 2px solid #cc0000;
+            border-radius: 15px;
+            padding: 15px 20px;
+            z-index: 800;
+            max-width: 350px;
+            min-width: 300px;
+            text-align: left;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.8);
+            backdrop-filter: blur(15px);
+            opacity: 0;
+            transform: translateX(20px);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 0.95rem;
+            line-height: 1.4;
+            color: #fff;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+        }
+        
+        #walkthroughSubtitles.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        
+        #walkthroughSubtitles::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #cc0000, #ff0000, #cc0000);
+            border-radius: 15px;
+            z-index: -1;
+            opacity: 0.5;
+        }
+        
         .ui-button:hover {
             background: rgba(204,0,0,0.8);
             border-color: #fff;
@@ -518,6 +601,22 @@
             #annotationPanel.visible {
                 transform: translateY(0);
             }
+            
+            /* Mobile subtitles - move to top center */
+            #walkthroughSubtitles {
+                top: 70px;
+                right: 15px;
+                left: 15px;
+                max-width: none;
+                min-width: auto;
+                font-size: 0.85rem;
+                padding: 12px 15px;
+                text-align: center;
+                transform: translateY(-20px);
+            }
+            #walkthroughSubtitles.visible {
+                transform: translateY(0);
+            }
         }
 
         /* Custom scrollbar */
@@ -558,6 +657,10 @@
                 <span class="feature-icon">ℹ️</span>
                 <div>Car Annotations</div>
             </div>
+            <div class="feature-circle">
+                <span class="feature-icon">🎧</span>
+                <div>Guided Tour</div>
+            </div>
         </div>
         <p id="tapText">TAP ANYWHERE TO START</p>
     </div>
@@ -597,6 +700,7 @@
             <li><span class="control-key">2 Finger</span>Pan Around</li>
             <li><span class="control-key">◄ ►</span>Switch Iteration</li>
             <li><span class="control-key">⟳</span>Auto Rotate</li>
+            <li><span class="control-key">🎧</span>Guided Tour</li>
         </ul>
     </div>
 
@@ -608,6 +712,12 @@
             <!-- Annotations will be populated here -->
         </div>
     </div>
+
+    <!-- Walkthrough Button - Detached -->
+    <button id="walkthroughButton" title="Start Guided Walkthrough">GUIDED WALKTHROUGH</button>
+
+    <!-- Walkthrough Subtitles -->
+    <div id="walkthroughSubtitles"></div>
 
     <!-- Loading Spinner -->
     <div id="loader"></div>
@@ -621,7 +731,8 @@
                 <strong>Navigation:</strong><br>
                 • Use arrows to switch iterations<br>
                 • Click components for detailed views<br>
-                • Auto-rotate for hands-free viewing
+                • Auto-rotate for hands-free viewing<br>
+                • Take the guided tour on the final iteration
             </div>
             <div id="welcomeStart">CLICK TO CONTINUE</div>
         </div>
@@ -650,6 +761,11 @@
         let currentIndex = 4; // Start on final iteration (index 4)
         let scene, camera, renderer, controls;
         let idleTimer = null;
+        let walkthroughActive = false;
+        let walkthroughAnimation = null;
+        let speechTimeoutId = null;
+        let walkthroughAudio = null;
+        let walkthroughStartTime = null;
         
         // UI elements
         const ui = {
@@ -659,6 +775,8 @@
             prev: document.getElementById('prev'),
             next: document.getElementById('next'),
             auto: document.getElementById('auto'),
+            walkthrough: document.getElementById('walkthroughButton'),
+            subtitles: document.getElementById('walkthroughSubtitles'),
             reset: document.getElementById('resetBtn'),
             loader: document.getElementById('loader'),
             instructions: document.getElementById('instructionsPanel'),
@@ -673,9 +791,9 @@
         const MODELS = [
             'iteration1.glb',
             'iteration1.glb', // Using same model as placeholder
-            'iteration1.glb',
-            'iteration1.glb',
-            'iteration1.glb'
+            'iteration1.glb', // Using same model as placeholder
+            'iteration1.glb', // Using same model as placeholder
+            'iteration1.glb'  // Using same model as placeholder
         ];
 
         const ITERATIONS = [
@@ -694,6 +812,49 @@
             { id: 4, name: "Left Sidepod", description: "Ensures balanced airflow configuration." },
             { id: 5, name: "Rear Wing", description: "Creates optimal downforce balance." },
             { id: 6, name: "Underfloor", description: "Ground effect aerodynamics for enhanced grip." }
+        ];
+
+        // Walkthrough System - EXACT annotation positions, NO MOVEMENT
+        const WALKTHROUGH_SCRIPT = [
+            {
+                camera: { position: [4, 6, 4], target: [0, 4, 1.6] },
+                text: "Welcome to our championship winning Formula One car. After three months of intensive development, over forty unique designs, and extensive computational fluid dynamics testing, this is our final iteration that achieves the perfect balance between mass, drag, and friction."
+            },
+            {
+                // FRONT WING - exact annotation position
+                camera: { position: [0.03, 5.83, 5.28], target: [-0.11, 2.88, 1.24] },
+                text: "Our body is designed to be as streamlined as possible, utilizing ultra-lightweight carbon fiber nylon for our halo and high-resolution ABS-like resin for our wing construction and wheel supports. At the front, fenders inspired by prototype race cars direct airflow around rather than over our front wheels."
+            },
+            {
+                // RIGHT SIDEPOD - exact annotation position  
+                camera: { position: [5.13, 5.57, 1.66], target: [-1.63, 4.08, 0.96] },
+                text: "We disconnected our nose cone from the chassis to reduce obstruction to the flow going through our central channel. Moving along the side, these veins activate in yaw conditions to correct the alignment of our racer and keep the wake of our front wheels from going rogue."
+            },
+            {
+                // LEFT SIDEPOD - exact annotation position
+                camera: { position: [-4.83, 5.4, 1.65], target: [1.24, 3.84, 2.04] },
+                text: "The sidepods house our cooling systems while directing airflow efficiently. Every surface has been optimized through computational fluid dynamics to ensure balanced airflow configuration across both sides of the vehicle."
+            },
+            {
+                // REAR WING - exact annotation position
+                camera: { position: [-0.04, 6.09, -2.39], target: [-0.13, 3.6, 1.11] },
+                text: "At the back of our racer, pods behind our rear wheels effectively stunt their wakes from forming, while our rear wing creates optimal downforce balance. The rest of our design takes on a minimalist philosophy for maximum aerodynamic efficiency."
+            },
+            {
+                // UNDERFLOOR - exact annotation position
+                camera: { position: [0.17, -1.99, 2.25], target: [0.17, 1.87, 1.96] },
+                text: "The underfloor utilizes ground effect aerodynamics for enhanced grip and stability. This final design achieves our perfect balance between mass, drag, and friction, ready to dominate any track. Thank you for taking our guided tour."
+            }
+        ];
+
+        // Timing for each step in the audio file (in seconds) - Total audio: 1:47 (107 seconds)
+        const WALKTHROUGH_TIMINGS = [
+            { start: 0, duration: 18 },    // Step 1: 0-18s
+            { start: 18, duration: 20 },   // Step 2: 18-38s  
+            { start: 38, duration: 18 },   // Step 3: 38-56s
+            { start: 56, duration: 16 },   // Step 4: 56-72s
+            { start: 72, duration: 18 },   // Step 5: 72-90s
+            { start: 90, duration: 17 }    // Step 6: 90-107s
         ];
 
         // Create a simple F1 car model (fallback)
@@ -778,7 +939,7 @@
             
             // Camera
             camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(15, 10, 15); // Reasonable starting position
+            camera.position.set(15, 10, 15);
             
             // Renderer
             renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
@@ -793,10 +954,10 @@
             // Controls
             controls = new OrbitControls(camera, renderer.domElement);
             controls.enableDamping = true;
-            controls.dampingFactor = 0.05; // Back to original damping
+            controls.dampingFactor = 0.05;
             controls.minDistance = 3;
-            controls.maxDistance = 40; // Adjusted for proper 8x zoom
-            controls.autoRotateSpeed = 2.0; // Faster rotation for tighter feel
+            controls.maxDistance = 40;
+            controls.autoRotateSpeed = 2.0;
             controls.enabled = false; // Start disabled
             
             // Control event listeners for idle timer
@@ -885,15 +1046,15 @@
             gltfLoader.load(
                 MODELS[index],
                 (gltf) => {
-                    console.log(`GLB model ${index + 1} loaded successfully`);
+                    console.log(`GLB model ${MODELS[index]} loaded successfully`);
                     setupModel(gltf.scene);
                 },
                 (progress) => {
                     const percent = (progress.loaded / progress.total * 100);
-                    console.log('Loading progress:', percent + '%');
+                    console.log(`Loading ${MODELS[index]} progress:`, percent + '%');
                 },
                 (error) => {
-                    console.warn(`Could not load GLB for iteration ${index + 1}, using fallback:`, error);
+                    console.warn(`Could not load GLB ${MODELS[index]}, using fallback:`, error);
                     setupModel(createCarModel());
                 }
             );
@@ -922,6 +1083,13 @@
             controls.autoRotate = true;
             ui.auto.classList.add('active');
             setCenteredAutoRotatePosition();
+            
+            // Show walkthrough button only on final iteration
+            if (currentIndex === 4) {
+                ui.walkthrough.style.display = 'flex';
+            } else {
+                ui.walkthrough.style.display = 'none';
+            }
             
             // Create annotations
             createAnnotations();
@@ -1003,6 +1171,235 @@
             material.dispose();
         }
 
+        // Audio cleanup function
+        function cleanupAudio() {
+            if (walkthroughAudio) {
+                walkthroughAudio.pause();
+                walkthroughAudio.currentTime = 0;
+                walkthroughAudio = null;
+            }
+            walkthroughStartTime = null;
+            if (speechTimeoutId) {
+                clearTimeout(speechTimeoutId);
+                speechTimeoutId = null;
+            }
+        }
+
+        // Load walkthrough audio
+        function loadWalkthroughAudio() {
+            return new Promise((resolve, reject) => {
+                walkthroughAudio = new Audio('walkthrough-complete.mp3');
+                
+                walkthroughAudio.addEventListener('loadedmetadata', () => {
+                    console.log(`Walkthrough audio loaded: ${walkthroughAudio.duration} seconds`);
+                    resolve();
+                });
+                
+                walkthroughAudio.addEventListener('error', (e) => {
+                    console.warn('Failed to load walkthrough audio:', e);
+                    reject(e);
+                });
+                
+                // Start loading
+                walkthroughAudio.load();
+            });
+        }
+
+        // Start walkthrough
+        async function startWalkthrough() {
+            if (walkthroughActive || currentIndex !== 4) return;
+            
+            console.log('Starting walkthrough...');
+            walkthroughActive = true;
+            ui.walkthrough.classList.add('active');
+            ui.walkthrough.textContent = 'STOP WALKTHROUGH';
+            
+            // Hide UI elements
+            ui.topBar.style.opacity = '0';
+            ui.prev.style.opacity = '0';
+            ui.next.style.opacity = '0';
+            ui.instructions.style.opacity = '0';
+            hideAnnotations();
+            
+            // Disable user controls
+            controls.enabled = false;
+            controls.autoRotate = false;
+            ui.auto.classList.remove('active');
+            clearTimeout(idleTimer);
+            
+            // Load and start audio
+            try {
+                await loadWalkthroughAudio();
+                executeWalkthroughSequence();
+            } catch (error) {
+                console.error('Failed to load walkthrough audio, using text-only mode');
+                executeWalkthroughSequence();
+            }
+        }
+        
+        // Execute walkthrough sequence
+        function executeWalkthroughSequence() {
+            let stepIndex = 0;
+            let audioStarted = false;
+            
+            function executeStep() {
+                if (!walkthroughActive || stepIndex >= WALKTHROUGH_SCRIPT.length) {
+                    if (stepIndex >= WALKTHROUGH_SCRIPT.length) {
+                        console.log('Walkthrough completed');
+                        endWalkthrough();
+                    }
+                    return;
+                }
+                
+                const step = WALKTHROUGH_SCRIPT[stepIndex];
+                const stepNumber = stepIndex + 1;
+                const timing = WALKTHROUGH_TIMINGS[stepIndex];
+                
+                console.log(`Step ${stepNumber}/${WALKTHROUGH_SCRIPT.length}: Moving to position`, step.camera.position);
+                
+                // Show subtitles
+                showSubtitles(step.text);
+                
+                // Smooth camera transition to position and STAY THERE
+                const transitionTime = stepIndex === 0 ? 2000 : 1500;
+                animateCamera(step.camera.position, step.camera.target, transitionTime);
+                
+                // Start audio on first step only
+                if (!audioStarted && walkthroughAudio) {
+                    walkthroughAudio.currentTime = 0;
+                    walkthroughAudio.play().then(() => {
+                        console.log('Walkthrough audio started');
+                    }).catch(e => {
+                        console.warn('Failed to play walkthrough audio:', e);
+                    });
+                    audioStarted = true;
+                }
+                
+                // Wait for this step's duration
+                const stepDuration = timing.duration * 1000;
+                speechTimeoutId = setTimeout(() => {
+                    if (!walkthroughActive) return;
+                    
+                    console.log(`Step ${stepNumber} completed`);
+                    
+                    // Move to next step
+                    stepIndex++;
+                    executeStep();
+                }, stepDuration);
+            }
+            
+            // Start with a brief delay
+            setTimeout(() => {
+                if (walkthroughActive) {
+                    executeStep();
+                }
+            }, 1000);
+        }
+        
+        // Stop walkthrough
+        function stopWalkthrough() {
+            if (!walkthroughActive) return;
+            
+            console.log('Stopping walkthrough...');
+            walkthroughActive = false;
+            
+            // Stop audio
+            cleanupAudio();
+            
+            // Clear any pending animations
+            if (walkthroughAnimation) {
+                clearTimeout(walkthroughAnimation);
+                walkthroughAnimation = null;
+            }
+            
+            endWalkthrough();
+        }
+        
+        // End walkthrough
+        function endWalkthrough() {
+            console.log('Ending walkthrough');
+            walkthroughActive = false;
+            
+            // Clean up audio completely
+            cleanupAudio();
+            
+            // Reset UI
+            ui.walkthrough.classList.remove('active');
+            ui.walkthrough.textContent = 'GUIDED WALKTHROUGH';
+            hideSubtitles();
+            
+            // Restore UI elements
+            ui.topBar.style.opacity = '1';
+            ui.prev.style.opacity = '1';
+            ui.next.style.opacity = '1';
+            ui.instructions.style.opacity = '1';
+            
+            // Re-enable controls with auto-rotate
+            controls.enabled = true;
+            controls.autoRotate = true;
+            ui.auto.classList.add('active');
+            setCenteredAutoRotatePosition();
+            
+            // Restore annotations
+            setTimeout(() => {
+                createAnnotations();
+                showAnnotations();
+            }, 500);
+            
+            // Restart idle timer
+            resetIdleTimer();
+            
+            console.log('Walkthrough ended successfully');
+        }
+        
+        // Show subtitles
+        function showSubtitles(text) {
+            if (ui.subtitles) {
+                ui.subtitles.textContent = text;
+                ui.subtitles.classList.add('visible');
+            }
+        }
+        
+        // Hide subtitles
+        function hideSubtitles() {
+            if (ui.subtitles) {
+                ui.subtitles.classList.remove('visible');
+                setTimeout(() => {
+                    ui.subtitles.textContent = '';
+                }, 500);
+            }
+        }
+        
+        // Animate camera
+        function animateCamera(position, target, duration) {
+            const startPosition = camera.position.clone();
+            const startTarget = controls.target.clone();
+            const targetPosition = new THREE.Vector3(...position);
+            const targetTarget = new THREE.Vector3(...target);
+            
+            const startTime = Date.now();
+            
+            function updateCamera() {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                // Smooth easing
+                const eased = progress < 0.5 
+                    ? 4 * progress * progress * progress
+                    : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+                
+                camera.position.lerpVectors(startPosition, targetPosition, eased);
+                controls.target.lerpVectors(startTarget, targetTarget, eased);
+                controls.update();
+                
+                if (progress < 1 && walkthroughActive) {
+                    requestAnimationFrame(updateCamera);
+                }
+            }
+            
+            updateCamera();
+        }
+
         // Annotation System
         function createAnnotations() {
             if (!ui.annotationPanel || !ui.annotationContent) return;
@@ -1054,29 +1451,29 @@
             controls.autoRotate = false;
             ui.auto.classList.remove('active');
             
-            // Your manually adjusted camera positions
+            // Camera positions for each annotation (using exact walkthrough positions)
             const cameraPositions = {
-                1: { // Front Wing - your adjusted position
+                1: { // Front Wing
                     position: [0.03, 5.83, 5.28],
                     target: [-0.11, 2.88, 1.24]
                 },
-                2: { // Right Sidepod - your adjusted position
+                2: { // Right Sidepod
                     position: [5.13, 5.57, 1.66],
                     target: [-1.63, 4.08, 0.96]
                 },
-                3: { // Cockpit - your adjusted position
+                3: { // Cockpit
                     position: [-0.03, 5.92, 3.11],
                     target: [0, 1.6, 0]
                 },
-                4: { // Left Sidepod - your adjusted position
+                4: { // Left Sidepod
                     position: [-4.83, 5.4, 1.65],
                     target: [1.24, 3.84, 2.04]
                 },
-                5: { // Rear Wing - your adjusted position
+                5: { // Rear Wing
                     position: [-0.04, 6.09, -2.39],
                     target: [-0.13, 3.6, 1.11]
                 },
-                6: { // Underfloor - your adjusted position
+                6: { // Underfloor
                     position: [0.17, -1.99, 2.25],
                     target: [0.17, 1.87, 1.96]
                 }
@@ -1088,7 +1485,7 @@
                 controls.target.set(pos.target[0], pos.target[1], pos.target[2]);
                 controls.update();
                 
-                console.log(`Focused on ${annotation.name} - using your custom position`);
+                console.log(`Focused on ${annotation.name} - using walkthrough position`);
             }
             
             resetIdleTimer();
@@ -1109,17 +1506,17 @@
             }
         }
 
-        // Idle Timer System - Goes to home screen after 10s
+        // Idle Timer System
         function resetIdleTimer() {
             clearTimeout(idleTimer);
             
-            if (appState === 'viewing') {
+            if (appState === 'viewing' && !walkthroughActive) {
                 idleTimer = setTimeout(() => {
-                    if (appState === 'viewing') {
+                    if (appState === 'viewing' && !walkthroughActive) {
                         console.log('Idle timeout - returning to home screen');
                         returnHome();
                     }
-                }, 10000); // 10 seconds of inactivity - always goes to home
+                }, 10000); // 10 seconds of inactivity
             }
         }
 
@@ -1132,13 +1529,13 @@
             const box = new THREE.Box3().setFromObject(currentModel);
             const carCenter = box.getCenter(new THREE.Vector3());
             
-            // Back to original auto-rotate position
+            // Set auto-rotate position
             camera.position.set(-4.86, 10.6, 0);
             
-            // Pan the rotation center down a bit (back to original)
+            // Pan the rotation center down a bit
             const rotationCenter = new THREE.Vector3(
                 carCenter.x, 
-                carCenter.y + 1.75, // Back to original -0.5
+                carCenter.y + 1.75,
                 carCenter.z
             );
             
@@ -1146,7 +1543,7 @@
             camera.lookAt(controls.target);
             controls.update();
             
-            console.log('Auto-rotate set - back to original position');
+            console.log('Auto-rotate set - centered position');
         }
 
         // Navigation functions
@@ -1159,10 +1556,6 @@
                 currentIndex = newIndex;
                 loadModel(currentIndex);
                 updateNavigationButtons();
-                
-                // Set auto-rotate position immediately after model loads (in setupModel)
-                // This prevents the weird transition from old position to new position
-                
                 resetIdleTimer();
             }
         }
@@ -1201,6 +1594,12 @@
         function returnHome() {
             console.log('Returning home');
             clearTimeout(idleTimer);
+            
+            // Stop walkthrough if active
+            if (walkthroughActive) {
+                stopWalkthrough();
+            }
+            
             controls.enabled = false;
             controls.autoRotate = false;
             ui.auto.classList.remove('active');
@@ -1212,11 +1611,13 @@
             }
             
             hideAnnotations();
+            hideSubtitles();
             ui.topBar.style.display = 'none';
             ui.prev.style.display = 'none';
             ui.next.style.display = 'none';
             ui.instructions.style.display = 'none';
             ui.welcome.style.display = 'none';
+            ui.walkthrough.style.display = 'none';
             ui.home.style.display = 'flex';
             appState = 'home';
             currentIndex = 4; // Reset to final iteration
@@ -1260,6 +1661,8 @@
             // Control buttons
             ui.auto.addEventListener('click', function(event) {
                 event.stopPropagation();
+                if (walkthroughActive) return; // Disable during walkthrough
+                
                 controls.autoRotate = !controls.autoRotate;
                 ui.auto.classList.toggle('active', controls.autoRotate);
                 
@@ -1267,6 +1670,17 @@
                     setCenteredAutoRotatePosition();
                 }
                 resetIdleTimer();
+            });
+            
+            ui.walkthrough.addEventListener('click', function(event) {
+                event.stopPropagation();
+                if (currentIndex !== 4) return; // Only available on final iteration
+                
+                if (walkthroughActive) {
+                    stopWalkthrough();
+                } else {
+                    startWalkthrough();
+                }
             });
             
             ui.reset.addEventListener('click', function(event) {
@@ -1292,418 +1706,19 @@
                             break;
                         case ' ':
                             event.preventDefault();
-                            ui.auto.click();
+                            if (currentIndex === 4) {
+                                ui.walkthrough.click();
+                            } else {
+                                ui.auto.click();
+                            }
                             break;
                         case 'Escape':
                             event.preventDefault();
-                            returnHome();
-                            break;
-                    }
-                }
-            });
-            
-            // Window resize
-            window.addEventListener('resize', function() {
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
-            });
-            
-            // Track interactions for idle timer
-            const interactionEvents = [
-                'mousedown', 'mouseup', 'mousemove', 'click',
-                'touchstart', 'touchmove', 'touchend',
-                'wheel', 'keydown'
-            ];
-            
-            interactionEvents.forEach(event => {
-                renderer.domElement.addEventListener(event, () => {
-                    if (appState === 'viewing') {
-                        resetIdleTimer();
-                    }
-                }, { passive: true });
-            });
-            
-            console.log('Event listeners set up successfully');
-        }
-
-        // Animation loop
-        function animate() {
-            requestAnimationFrame(animate);
-            
-            if (controls) {
-                controls.update();
-            }
-            
-            if (renderer && scene && camera) {
-                renderer.render(scene, camera);
-            }
-        }
-
-        // Initialize application
-        function init() {
-            console.log('Initializing Aeros Racing Pit Display...');
-            
-            try {
-                initScene();
-                setupEventListeners();
-                animate();
-                console.log('Application initialized successfully');
-                console.log('Current state:', appState);
-            } catch (error) {
-                console.error('Initialization error:', error);
-            }
-        }
-
-        // Start the application when DOM is ready
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', init);
-        } else {
-            init();
-        }
-    </script>
-</body>
-</html>
-
-        function hideAnnotations() {
-            if (ui.annotationPanel) {
-                ui.annotationPanel.classList.remove('visible');
-            }
-            if (ui.annotationContent) {
-                ui.annotationContent.innerHTML = '';
-            }
-        }
-
-        // Idle Timer System
-        function resetIdleTimer() {
-            clearTimeout(idleTimer);
-            
-            if (appState === 'viewing') {
-                idleTimer = setTimeout(() => {
-                    if (appState === 'viewing' && !controls.autoRotate) {
-                        console.log('Idle timeout - enabling auto-rotate');
-                        setCenteredAutoRotatePosition();
-                        controls.autoRotate = true;
-                        ui.auto.classList.add('active');
-                        
-                        // Clear any active annotations
-                        if (ui.annotationContent) {
-                            ui.annotationContent.querySelectorAll('.annotation-item').forEach(item => {
-                                item.classList.remove('active');
-                            });
-                        }
-                    }
-                }, 10000); // 10 seconds of inactivity
-            }
-        }
-
-        function setCenteredAutoRotatePosition() {
-            if (!currentModel) return;
-            
-            // Get model dimensions
-            const box = new THREE.Box3().setFromObject(currentModel);
-            const size = box.getSize(new THREE.Vector3());
-            const center = new THREE.Vector3(0, size.y / 2, 0);
-            
-            // Set camera at optimal distance and angle
-            const distance = Math.max(size.x, size.z) * 2.5;
-            const height = size.y * 1.5;
-            
-            camera.position.set(distance * 0.7, height, distance * 0.7);
-            controls.target.copy(center);
-            camera.lookAt(center);
-            controls.update();
-        }
-
-        // Navigation functions
-        function switchIteration(direction) {
-            const newIndex = direction === 'next' 
-                ? Math.min(currentIndex + 1, ITERATIONS.length - 1)
-                : Math.max(currentIndex - 1, 0);
-                
-            if (newIndex !== currentIndex) {
-                currentIndex = newIndex;
-                loadModel(currentIndex);
-                updateNavigationButtons();
-                resetIdleTimer();
-            }
-        }
-
-        function updateNavigationButtons() {
-            ui.prev.classList.toggle('disabled', currentIndex === 0);
-            ui.next.classList.toggle('disabled', currentIndex === ITERATIONS.length - 1);
-        }
-
-        // UI functions
-        function showViewer() {
-            console.log('Showing viewer');
-            ui.home.style.display = 'none';
-            ui.topBar.style.display = 'flex';
-            ui.prev.style.display = 'flex';
-            ui.next.style.display = 'flex';
-            ui.instructions.style.display = 'block';
-            ui.welcome.style.display = 'flex';
-            
-            updateNavigationButtons();
-            loadModel(currentIndex);
-            appState = 'loading';
-        }
-
-        function startViewing() {
-            console.log('Starting viewing');
-            ui.welcome.style.display = 'none';
-            controls.enabled = true;
-            controls.autoRotate = true;
-            ui.auto.classList.add('active');
-            setCenteredAutoRotatePosition();
-            resetIdleTimer();
-            appState = 'viewing';
-        }
-
-        function returnHome() {
-            console.log('Returning home');
-            clearTimeout(idleTimer);
-            controls.enabled = false;
-            controls.autoRotate = false;
-            ui.auto.classList.remove('active');
-            
-            if (currentModel) {
-                scene.remove(currentModel);
-                disposeModel(currentModel);
-                currentModel = null;
-            }
-            
-            hideAnnotations();
-            ui.topBar.style.display = 'none';
-            ui.prev.style.display = 'none';
-            ui.next.style.display = 'none';
-            ui.instructions.style.display = 'none';
-            ui.welcome.style.display = 'none';
-            ui.home.style.display = 'flex';
-            appState = 'home';
-            currentIndex = 0;
-        }Map.type = THREE.PCFSoftShadowMap;
-            
-            // Controls
-            controls = new OrbitControls(camera, renderer.domElement);
-            controls.enableDamping = true;
-            controls.dampingFactor = 0.05;
-            controls.minDistance = 4;
-            controls.maxDistance = 15;
-            controls.autoRotateSpeed = 1.0;
-            controls.enabled = false; // Start disabled
-            
-            // Lighting
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
-            scene.add(ambientLight);
-            
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
-            directionalLight.position.set(10, 10, 5);
-            directionalLight.castShadow = true;
-            directionalLight.shadow.mapSize.width = 2048;
-            directionalLight.shadow.mapSize.height = 2048;
-            scene.add(directionalLight);
-            
-            // Ground
-            const groundGeometry = new THREE.PlaneGeometry(50, 50);
-            const groundMaterial = new THREE.MeshLambertMaterial({ 
-                color: 0x1a1a1a,
-                transparent: true,
-                opacity: 0.8
-            });
-            const ground = new THREE.Mesh(groundGeometry, groundMaterial);
-            ground.rotation.x = -Math.PI / 2;
-            ground.receiveShadow = true;
-            scene.add(ground);
-            
-            console.log('Scene initialized successfully');
-        }
-
-        // Load and display model
-        function loadModel(index) {
-            ui.loader.style.display = 'block';
-            
-            // Update UI
-            const iteration = ITERATIONS[index];
-            ui.iterationTitle.textContent = iteration.title;
-            ui.iterationSubtitle.textContent = iteration.subtitle;
-            
-            const specsHtml = Object.entries(iteration.specs).map(([key, value]) => 
-                `<div class="spec-line">${key}: <span class="spec-highlight">${value}</span></div>`
-            ).join('');
-            ui.specsInfo.innerHTML = specsHtml;
-            
-            // Remove existing model
-            if (currentModel) {
-                scene.remove(currentModel);
-            }
-            
-            // Create new model (for now just using the same model)
-            currentModel = createCarModel();
-            
-            // Position model
-            const box = new THREE.Box3().setFromObject(currentModel);
-            const size = box.getSize(new THREE.Vector3());
-            const center = box.getCenter(new THREE.Vector3());
-            
-            // Scale and position
-            const maxDim = Math.max(size.x, size.y, size.z);
-            const scale = 4 / maxDim;
-            currentModel.scale.setScalar(scale);
-            
-            // Center on ground
-            currentModel.position.y = -box.min.y * scale;
-            currentModel.position.x = -center.x * scale;
-            currentModel.position.z = -center.z * scale;
-            
-            scene.add(currentModel);
-            
-            // Update controls target
-            controls.target.set(0, size.y * scale / 2, 0);
-            controls.update();
-            
-            ui.loader.style.display = 'none';
-            console.log(`Model ${index + 1} loaded successfully`);
-        }
-
-        // Navigation functions
-        function switchIteration(direction) {
-            const newIndex = direction === 'next' 
-                ? Math.min(currentIndex + 1, ITERATIONS.length - 1)
-                : Math.max(currentIndex - 1, 0);
-                
-            if (newIndex !== currentIndex) {
-                currentIndex = newIndex;
-                loadModel(currentIndex);
-                updateNavigationButtons();
-            }
-        }
-
-        function updateNavigationButtons() {
-            ui.prev.classList.toggle('disabled', currentIndex === 0);
-            ui.next.classList.toggle('disabled', currentIndex === ITERATIONS.length - 1);
-        }
-
-        // UI functions
-        function showViewer() {
-            console.log('Showing viewer');
-            ui.home.style.display = 'none';
-            ui.topBar.style.display = 'flex';
-            ui.prev.style.display = 'flex';
-            ui.next.style.display = 'flex';
-            ui.instructions.style.display = 'block';
-            ui.welcome.style.display = 'flex';
-            
-            updateNavigationButtons();
-            loadModel(currentIndex);
-            appState = 'loading';
-        }
-
-        function startViewing() {
-            console.log('Starting viewing');
-            ui.welcome.style.display = 'none';
-            controls.enabled = true;
-            controls.autoRotate = true;
-            ui.auto.classList.add('active');
-            appState = 'viewing';
-        }
-
-        function returnHome() {
-            console.log('Returning home');
-            controls.enabled = false;
-            controls.autoRotate = false;
-            ui.auto.classList.remove('active');
-            
-            if (currentModel) {
-                scene.remove(currentModel);
-                currentModel = null;
-            }
-            
-            ui.topBar.style.display = 'none';
-            ui.prev.style.display = 'none';
-            ui.next.style.display = 'none';
-            ui.instructions.style.display = 'none';
-            ui.welcome.style.display = 'none';
-            ui.home.style.display = 'flex';
-            appState = 'home';
-            currentIndex = 0;
-        }
-
-        // Event listeners
-        function setupEventListeners() {
-            // Home screen click
-            ui.home.addEventListener('click', function(event) {
-                console.log('Home screen clicked');
-                event.preventDefault();
-                if (appState === 'home') {
-                    showViewer();
-                }
-            });
-            
-            // Welcome screen click
-            ui.welcome.addEventListener('click', function(event) {
-                console.log('Welcome clicked');
-                event.preventDefault();
-                if (appState === 'loading') {
-                    startViewing();
-                }
-            });
-            
-            // Navigation buttons
-            ui.prev.addEventListener('click', function(event) {
-                event.stopPropagation();
-                if (!ui.prev.classList.contains('disabled')) {
-                    switchIteration('prev');
-                }
-            });
-            
-            ui.next.addEventListener('click', function(event) {
-                event.stopPropagation();
-                if (!ui.next.classList.contains('disabled')) {
-                    switchIteration('next');
-                }
-            });
-            
-            // Control buttons
-            ui.auto.addEventListener('click', function(event) {
-                event.stopPropagation();
-                controls.autoRotate = !controls.autoRotate;
-                ui.auto.classList.toggle('active', controls.autoRotate);
-                
-                if (controls.autoRotate) {
-                    setCenteredAutoRotatePosition();
-                }
-                resetIdleTimer();
-            });
-            
-            ui.reset.addEventListener('click', function(event) {
-                event.stopPropagation();
-                returnHome();
-            });
-            
-            // Keyboard navigation
-            document.addEventListener('keydown', function(event) {
-                if (appState === 'viewing') {
-                    switch(event.key) {
-                        case 'ArrowLeft':
-                            event.preventDefault();
-                            if (!ui.prev.classList.contains('disabled')) {
-                                switchIteration('prev');
+                            if (walkthroughActive) {
+                                stopWalkthrough();
+                            } else {
+                                returnHome();
                             }
-                            break;
-                        case 'ArrowRight':
-                            event.preventDefault();
-                            if (!ui.next.classList.contains('disabled')) {
-                                switchIteration('next');
-                            }
-                            break;
-                        case ' ':
-                            event.preventDefault();
-                            ui.auto.click();
-                            break;
-                        case 'Escape':
-                            event.preventDefault();
-                            returnHome();
                             break;
                     }
                 }
