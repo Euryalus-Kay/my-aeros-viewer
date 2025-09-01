@@ -538,12 +538,12 @@
             position: fixed;
             top: 120px;
             right: 30px;
-            width: 280px;
-            max-height: calc(100vh - 200px);
+            width: 240px;
+            max-height: calc(100vh - 240px);
             background: linear-gradient(145deg, rgba(20,20,20,0.98), rgba(30,15,15,0.95));
             border: 2px solid #cc0000;
             border-radius: 20px;
-            padding: 20px;
+            padding: 16px;
             z-index: 400;
             box-shadow: 0 8px 25px rgba(0,0,0,0.7), 0 0 20px rgba(204,0,0,0.3);
             backdrop-filter: blur(15px);
@@ -710,10 +710,10 @@
         /* ====== LIVERY PANEL STYLES ====== */
         #liveryPanel {
             position: fixed;
-            top: 90px;
+            top: 140px;
             left: 30px;
             width: 320px;
-            max-height: calc(100vh - 140px);
+            max-height: calc(100vh - 200px);
             background: linear-gradient(145deg, rgba(20,20,20,0.98), rgba(30,15,15,0.95));
             border: 2px solid #cc0000;
             border-radius: 20px;
@@ -2191,12 +2191,24 @@
 
         // Toggle livery panel visibility
         function toggleLiveryPanel() {
+            const isVisible = ui.liveryPanel.classList.contains('visible');
             ui.liveryPanel.classList.toggle('visible');
+            
+            // Hide instructions when livery panel is open, show when closed
+            if (!isVisible) {
+                // Livery panel is opening - hide instructions
+                ui.instructions.style.display = 'none';
+            } else {
+                // Livery panel is closing - show instructions
+                ui.instructions.style.display = 'block';
+            }
         }
 
         // Hide livery panel
         function hideLiveryPanel() {
             ui.liveryPanel.classList.remove('visible');
+            // Show instructions when livery panel is hidden
+            ui.instructions.style.display = 'block';
         }
 
         // ====== ANNOTATION SYSTEM ======
