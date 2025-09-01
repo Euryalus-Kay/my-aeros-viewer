@@ -33,7 +33,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, #f3241 0%, #f3241 50%, #f3241 100%);
+            background: linear-gradient(135deg, #cc0000 0%, #990000 50%, #660000 100%);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -461,8 +461,8 @@
             border-color: transparent;
         }
         
-        #prev { left: 50px; }
-        #next { right: 50px; }
+        #prev { left: 30px; }
+        #next { right: 30px; }
         
         /* Instructions Panel */
         #instructionsPanel {
@@ -538,12 +538,12 @@
             position: fixed;
             top: 120px;
             right: 30px;
-            width: 240px;
-            max-height: calc(100vh - 240px);
+            width: 280px;
+            max-height: calc(100vh - 200px);
             background: linear-gradient(145deg, rgba(20,20,20,0.98), rgba(30,15,15,0.95));
             border: 2px solid #cc0000;
             border-radius: 20px;
-            padding: 16px;
+            padding: 20px;
             z-index: 400;
             box-shadow: 0 8px 25px rgba(0,0,0,0.7), 0 0 20px rgba(204,0,0,0.3);
             backdrop-filter: blur(15px);
@@ -710,10 +710,10 @@
         /* ====== LIVERY PANEL STYLES ====== */
         #liveryPanel {
             position: fixed;
-            top: 140px;
+            top: 90px;
             left: 30px;
             width: 320px;
-            max-height: calc(100vh - 200px);
+            max-height: calc(100vh - 140px);
             background: linear-gradient(145deg, rgba(20,20,20,0.98), rgba(30,15,15,0.95));
             border: 2px solid #cc0000;
             border-radius: 20px;
@@ -867,8 +867,8 @@
             .feature-container { gap: 1.5rem; }
             .feature-circle { width: 150px; height: 150px; }
             .nav-arrow { width: 60px; height: 60px; font-size: 2rem; }
-            #prev { left: 30px; }
-            #next { right: 30px; }
+            #prev { left: 20px; }
+            #next { right: 20px; }
             
             #topBar {
                 padding: 0 15px;
@@ -2191,24 +2191,12 @@
 
         // Toggle livery panel visibility
         function toggleLiveryPanel() {
-            const isVisible = ui.liveryPanel.classList.contains('visible');
             ui.liveryPanel.classList.toggle('visible');
-            
-            // Hide instructions when livery panel is open, show when closed
-            if (!isVisible) {
-                // Livery panel is opening - hide instructions
-                ui.instructions.style.display = 'none';
-            } else {
-                // Livery panel is closing - show instructions
-                ui.instructions.style.display = 'block';
-            }
         }
 
         // Hide livery panel
         function hideLiveryPanel() {
             ui.liveryPanel.classList.remove('visible');
-            // Show instructions when livery panel is hidden
-            ui.instructions.style.display = 'block';
         }
 
         // ====== ANNOTATION SYSTEM ======
