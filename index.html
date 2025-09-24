@@ -147,8 +147,11 @@
             text-shadow: 0 1px 3px rgba(0,0,0,0.7);
         }
         
-        .iteration-selector {
-            margin-left: 20px;
+        .iteration-selector-floating {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 600;
         }
         
         .iteration-dropdown {
@@ -932,6 +935,16 @@
             .iteration-title { font-size: 1.4rem; }
             .spec-line { font-size: 0.8rem; }
             
+            .iteration-selector-floating {
+                top: 15px;
+                right: 15px;
+            }
+            .iteration-dropdown {
+                min-width: 200px;
+                font-size: 0.9rem;
+                padding: 10px 12px;
+            }
+            
             .center-controls {
                 order: 3;
                 width: 100%;
@@ -1067,16 +1080,6 @@
             <div class="iteration-subtitle" id="iterationSubtitle">Initial Design</div>
         </div>
         
-        <div class="iteration-selector">
-            <select id="iterationDropdown" class="iteration-dropdown">
-                <option value="0" selected>Iteration 1 - Initial Concept</option>
-                <option value="1">Iteration 2 - Rearpod Detail</option>
-                <option value="2">Iteration 3 - Symmetrical Enhancement</option>
-                <option value="3">Iteration 4 - Diffuser Integration</option>
-                <option value="4">AW-25 Final - Production Ready</option>
-            </select>
-        </div>
-        
         <div class="center-controls">
             <div class="control-group">
                 <button id="auto" class="ui-button" title="Toggle Auto-Rotate">⟳</button>
@@ -1106,6 +1109,17 @@
     <!-- Navigation Arrows -->
     <div id="prev" class="nav-arrow" title="Previous Iteration">◄</div>
     <div id="next" class="nav-arrow" title="Next Iteration">►</div>
+
+    <!-- Iteration Selector -->
+    <div id="iterationSelector" class="iteration-selector-floating">
+        <select id="iterationDropdown" class="iteration-dropdown">
+            <option value="0" selected>Iteration 1 - Initial Concept</option>
+            <option value="1">Iteration 2 - Rearpod Detail</option>
+            <option value="2">Iteration 3 - Symmetrical Enhancement</option>
+            <option value="3">Iteration 4 - Diffuser Integration</option>
+            <option value="4">AW-25 Final - Production Ready</option>
+        </select>
+    </div>
 
     <!-- Instructions Panel -->
     <div id="instructionsPanel">
