@@ -152,33 +152,44 @@
         }
         
         .iteration-dropdown {
-            background: rgba(20, 20, 20, 0.9);
+            background: linear-gradient(145deg, rgba(25, 25, 25, 0.95), rgba(15, 15, 15, 0.95));
             border: 2px solid #cc0000;
-            border-radius: 8px;
+            border-radius: 12px;
             color: #fff;
-            font-size: 0.9rem;
-            font-weight: 600;
-            padding: 8px 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            padding: 12px 16px;
             cursor: pointer;
             transition: all 0.3s ease;
-            min-width: 200px;
+            min-width: 250px;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1);
         }
         
         .iteration-dropdown:hover {
             border-color: #ff3333;
-            box-shadow: 0 0 15px rgba(204,0,0,0.5);
+            box-shadow: 0 0 20px rgba(204,0,0,0.6), 0 6px 20px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.15);
+            transform: translateY(-1px);
         }
         
         .iteration-dropdown:focus {
             outline: none;
             border-color: #ff3333;
-            box-shadow: 0 0 20px rgba(204,0,0,0.7);
+            box-shadow: 0 0 25px rgba(204,0,0,0.8), 0 8px 25px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.2);
+            transform: translateY(-2px);
         }
         
         .iteration-dropdown option {
-            background: #1a1a1a;
+            background: linear-gradient(145deg, #1a1a1a, #0f0f0f);
             color: #fff;
-            padding: 8px;
+            padding: 12px 16px;
+            font-weight: 600;
+            border: none;
+        }
+        
+        .iteration-dropdown option:hover {
+            background: linear-gradient(145deg, #cc0000, #aa0000);
+            color: #fff;
         }
 
         /* ENHANCED: Professional Racing-Style Center Controls */
@@ -1058,7 +1069,7 @@
         
         <div class="iteration-selector">
             <select id="iterationDropdown" class="iteration-dropdown">
-                <option value="0">Iteration 1 - Initial Concept</option>
+                <option value="0" selected>Iteration 1 - Initial Concept</option>
                 <option value="1">Iteration 2 - Rearpod Detail</option>
                 <option value="2">Iteration 3 - Symmetrical Enhancement</option>
                 <option value="3">Iteration 4 - Diffuser Integration</option>
@@ -1175,7 +1186,7 @@
         // Global state
         let appState = 'home';
         let currentModel = null;
-        let currentIndex = 4; // Start on final iteration (index 4)
+        let currentIndex = 0; // Start on iteration 1 (index 0)
         let scene, camera, renderer, controls;
         let idleTimer = null;
         let walkthroughActive = false;
@@ -2947,7 +2958,7 @@
             ui.walkthrough.style.display = 'none';
             ui.home.style.display = 'flex';
             appState = 'home';
-            currentIndex = 4; // Reset to final iteration
+            currentIndex = 0; // Reset to iteration 1
         }
 
         // ====== THREE.JS SCENE SETUP ======
