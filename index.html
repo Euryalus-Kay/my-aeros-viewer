@@ -168,6 +168,11 @@
             text-shadow: 0 1px 3px rgba(0,0,0,0.8);
             box-shadow: 0 4px 15px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1);
         }
+        .iteration-dropdown:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            filter: grayscale(30%);
+        }
         
         .iteration-dropdown:hover {
             border-color: #ff3333;
@@ -2430,6 +2435,10 @@
             walkthroughActive = true;
             ui.walkthrough.classList.add('active');
             ui.walkthrough.textContent = 'STOP WALKTHROUGH';
+            // Disable iteration dropdown during walkthrough
+            if (ui.iterationDropdown) {
+                ui.iterationDropdown.disabled = true;
+            }
             
             // Store current background and always restore to original for walkthrough
             window.storedBackground = scene.background.clone();
@@ -2555,6 +2564,10 @@
             // Reset UI
             ui.walkthrough.classList.remove('active');
             ui.walkthrough.textContent = 'GUIDED WALKTHROUGH';
+            // Re-enable iteration dropdown after walkthrough
+            if (ui.iterationDropdown) {
+                ui.iterationDropdown.disabled = false;
+            }
             hideSubtitles();
             
             // Restore UI elements
