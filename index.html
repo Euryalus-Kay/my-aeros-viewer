@@ -1174,18 +1174,18 @@
         // Configuration
         const MODELS = [
             'iteration1.glb',
-            'iteration1.glb', // Using same model as placeholder
-            'iteration1.glb', // Using same model as placeholder
-            'iteration1.glb', // Using same model as placeholder
-            'iteration1.glb'  // Using same model as placeholder
+            'iteration2.glb',
+            'iteration3.glb',
+            'iteration4.glb',
+            'AW-25.glb'
         ];
 
         const ITERATIONS = [
-            { title: "ITERATION 1", subtitle: "Initial Concept", specs: { "Weight": "65g", "Length": "210mm", "Drag Coeff": "0.45" } },
-            { title: "ITERATION 2", subtitle: "Aerodynamic Refinement", specs: { "Weight": "62g", "Length": "210mm", "Drag Coeff": "0.38" } },
-            { title: "ITERATION 3", subtitle: "Weight Optimization", specs: { "Weight": "58g", "Length": "210mm", "Drag Coeff": "0.35" } },
-            { title: "ITERATION 4", subtitle: "Performance Tuning", specs: { "Weight": "55g", "Length": "210mm", "Drag Coeff": "0.33" } },
-            { title: "FINAL ITERATION", subtitle: "Production Ready", specs: { "Weight": "52g", "Length": "210mm", "Drag Coeff": "0.32" } }
+            { title: "ITERATION 1", subtitle: "Initial Concept", specs: { "Weight": "50g", "Length": "210mm", "Drag Coeff": "0.45" } },
+            { title: "ITERATION 2", subtitle: "Rearpod Detail", specs: { "Weight": "50g", "Length": "210mm", "Drag Coeff": "0.38" } },
+            { title: "ITERATION 3", subtitle: "Symmetrical Enhancement", specs: { "Weight": "50g", "Length": "210mm", "Drag Coeff": "0.35" } },
+            { title: "ITERATION 4", subtitle: "Diffuser Integration", specs: { "Weight": "50g", "Length": "210mm", "Drag Coeff": "0.33" } },
+            { title: "AW-25 FINAL", subtitle: "Production Ready", specs: { "Weight": "48g", "Length": "210mm", "Drag Coeff": "0.32" } }
         ];
 
         // Annotation system
@@ -2678,12 +2678,19 @@
             }
         }
 
-        function positionModel(model) {
+        function positionModel(model, modelIndex) {
             // Reset transformations
             model.position.set(0, 0, 0);
             model.scale.set(1, 1, 1);
             model.rotation.set(0, 0, 0);
             model.updateMatrixWorld(true);
+            
+            // Apply rotation based on model index
+            if (modelIndex > 0) { // iterations 2-5 (indices 1-4)
+                model.rotation.set(Math.PI/2, 0, 0);
+                model.updateMatrixWorld(true);
+            }
+            // iteration 1 (index 0) keeps [0, 0, 0] rotation
             
             // Get bounding box
             const box = new THREE.Box3().setFromObject(model);
@@ -2728,7 +2735,7 @@
             });
             
             // Position model
-            positionModel(currentModel);
+            positionModel(currentModel, currentIndex);
             scene.add(currentModel);
             
             // Store original materials for livery system
