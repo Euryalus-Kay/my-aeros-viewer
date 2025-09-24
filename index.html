@@ -182,17 +182,31 @@
             transform: translateY(-2px);
         }
         
+        /* Use high-contrast friendly colors for native Windows dropdown menu */
         .iteration-dropdown option {
-            background: linear-gradient(145deg, #1a1a1a, #0f0f0f);
-            color: #fff;
+            background: #ffffff; /* many platforms ignore this but safe */
+            color: #000000;      /* ensure readable on white native menus */
             padding: 12px 16px;
             font-weight: 600;
             border: none;
         }
-        
         .iteration-dropdown option:hover {
-            background: linear-gradient(145deg, #cc0000, #aa0000);
-            color: #fff;
+            background: #f0f0f0;
+            color: #000000;
+        }
+
+        /* Prefer system colors in forced-colors modes (Windows High Contrast) */
+        @media (forced-colors: active) {
+            .iteration-dropdown {
+                forced-color-adjust: none;
+                color: ButtonText;
+                background: ButtonFace;
+                border-color: ButtonText;
+            }
+            .iteration-dropdown option {
+                color: ButtonText;
+                background: ButtonFace;
+            }
         }
 
         /* ENHANCED: Professional Racing-Style Center Controls */
