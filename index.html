@@ -2762,7 +2762,7 @@
             
             // Apply rotation based on model index
             if (modelIndex > 0) { // iterations 2-5 (indices 1-4)
-                model.rotation.set(Math.PI/2, 0, 0);
+                model.rotation.set(3*Math.PI/2, 0, 0);
                 model.updateMatrixWorld(true);
             }
             // iteration 1 (index 0) keeps [0, 0, 0] rotation
