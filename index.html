@@ -2410,7 +2410,7 @@
 
         // Start walkthrough
         async function startWalkthrough() {
-            if (walkthroughActive || currentIndex !== 4) return;
+            if (walkthroughActive || currentIndex !== 0) return;
             
             console.log('Starting walkthrough...');
             walkthroughActive = true;
@@ -2821,8 +2821,8 @@
             ui.auto.classList.add('active');
             setCenteredAutoRotatePosition();
             
-            // Show walkthrough button only on final iteration
-            if (currentIndex === 4) {
+            // Show walkthrough button only on iteration 1
+            if (currentIndex === 0) {
                 ui.walkthrough.style.display = 'flex';
             } else {
                 ui.walkthrough.style.display = 'none';
@@ -3204,7 +3204,7 @@
                             break;
                         case ' ':
                             event.preventDefault();
-                            if (currentIndex === 4) {
+                            if (currentIndex === 0) {
                                 ui.walkthrough.click();
                             } else {
                                 ui.auto.click();
