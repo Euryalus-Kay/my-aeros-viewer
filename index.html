@@ -3160,7 +3160,7 @@
             
             ui.walkthrough.addEventListener('click', function(event) {
                 event.stopPropagation();
-                if (currentIndex !== 4) return; // Only available on final iteration
+                if (currentIndex !== 0) return; // Only available on iteration 1
                 
                 if (walkthroughActive) {
                     stopWalkthrough();
