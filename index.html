@@ -146,6 +146,40 @@
             font-weight: 400;
             text-shadow: 0 1px 3px rgba(0,0,0,0.7);
         }
+        
+        .iteration-selector {
+            margin-left: 20px;
+        }
+        
+        .iteration-dropdown {
+            background: rgba(20, 20, 20, 0.9);
+            border: 2px solid #cc0000;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 0.9rem;
+            font-weight: 600;
+            padding: 8px 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 200px;
+        }
+        
+        .iteration-dropdown:hover {
+            border-color: #ff3333;
+            box-shadow: 0 0 15px rgba(204,0,0,0.5);
+        }
+        
+        .iteration-dropdown:focus {
+            outline: none;
+            border-color: #ff3333;
+            box-shadow: 0 0 20px rgba(204,0,0,0.7);
+        }
+        
+        .iteration-dropdown option {
+            background: #1a1a1a;
+            color: #fff;
+            padding: 8px;
+        }
 
         /* ENHANCED: Professional Racing-Style Center Controls */
         .center-controls {
@@ -1022,6 +1056,16 @@
             <div class="iteration-subtitle" id="iterationSubtitle">Initial Design</div>
         </div>
         
+        <div class="iteration-selector">
+            <select id="iterationDropdown" class="iteration-dropdown">
+                <option value="0">Iteration 1 - Initial Concept</option>
+                <option value="1">Iteration 2 - Rearpod Detail</option>
+                <option value="2">Iteration 3 - Symmetrical Enhancement</option>
+                <option value="3">Iteration 4 - Diffuser Integration</option>
+                <option value="4">AW-25 Final - Production Ready</option>
+            </select>
+        </div>
+        
         <div class="center-controls">
             <div class="control-group">
                 <button id="auto" class="ui-button" title="Toggle Auto-Rotate">⟳</button>
@@ -1168,7 +1212,8 @@
             specsInfo: document.getElementById('specsInfo'),
             annotationPanel: document.getElementById('annotationPanel'),
             annotationContent: document.getElementById('annotationContent'),
-            liveryPanel: document.getElementById('liveryPanel')
+            liveryPanel: document.getElementById('liveryPanel'),
+            iterationDropdown: document.getElementById('iterationDropdown')
         };
 
         // Configuration
@@ -2781,6 +2826,9 @@
             ui.iterationTitle.textContent = iteration.title;
             ui.iterationSubtitle.textContent = iteration.subtitle;
             
+            // Update dropdown selection
+            ui.iterationDropdown.value = index;
+            
             const specsHtml = Object.entries(iteration.specs).map(([key, value]) => 
                 `<div class="spec-line">${key}: <span class="spec-highlight">${value}</span></div>`
             ).join('');
@@ -3099,6 +3147,18 @@
             ui.reset.addEventListener('click', function(event) {
                 event.stopPropagation();
                 returnHome();
+            });
+            
+            // Iteration dropdown
+            ui.iterationDropdown.addEventListener('change', function(event) {
+                event.stopPropagation();
+                const selectedIndex = parseInt(event.target.value);
+                if (selectedIndex !== currentIndex) {
+                    currentIndex = selectedIndex;
+                    loadModel(currentIndex);
+                    updateNavigationButtons();
+                    resetIdleTimer();
+                }
             });
             
             // Keyboard navigation
